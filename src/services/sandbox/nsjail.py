@@ -81,9 +81,9 @@ class NsjailConfig:
         "c": [],
         "cpp": [],
         "php": [
-            "/usr/local/etc/php",
-            "/usr/local/bin/php",
-            "/usr/local/lib/php",
+            "/etc/php",
+            "/usr/bin/php",
+            "/usr/lib/php",
         ],
         "rs": [
             "/usr/local/cargo",

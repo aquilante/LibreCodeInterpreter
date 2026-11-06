@@ -255,7 +255,9 @@ class SandboxExecutor:
         elif normalized_lang == "php":
             env_whitelist.update(
                 {
-                    "PHP_INI_SCAN_DIR": "/usr/local/etc/php/conf.d",
+                    "PHP_INI_SCAN_DIR": os.environ.get(
+                        "PHP_INI_SCAN_DIR", "/etc/php/8.3/cli/conf.d"
+                    ),
                     "COMPOSER_HOME": "/opt/composer/global",
                     "PATH": "/opt/composer/global/vendor/bin:/usr/local/bin:/usr/bin:/bin",
                 }

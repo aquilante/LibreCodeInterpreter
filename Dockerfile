@@ -164,11 +164,28 @@ ENV CC=gcc \
 # ============================================
 # PHP
 # ============================================
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    php php-cli php-common \
-    php-xml php-zip php-gd php-mbstring \
-    php-curl php-json \
+# Ubuntu 24.04 ships PHP 8.3.6 (security fixes backported, version frozen).
+# Install the latest upstream 8.3.x from the ondrej/php PPA instead. The PPA is
+# added by hand (key pinned by fingerprint) rather than via add-apt-repository,
+# which calls the Launchpad API and fails behind authenticating proxies. The
+# source is removed afterwards so later apt steps keep using Ubuntu packages.
+ARG PHP_VERSION=8.3
+ARG PHP_MIN_VERSION=8.3.36
+ARG ONDREJ_PHP_KEY=14AA40EC0831756756D7F66C4F4EA0AAE5267A6C
+RUN curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${ONDREJ_PHP_KEY}" \
+        | gpg --dearmor -o /usr/share/keyrings/ondrej-php.gpg && \
+    gpg --show-keys --with-colons /usr/share/keyrings/ondrej-php.gpg \
+        | grep -q "^fpr:::::::::${ONDREJ_PHP_KEY}:" && \
+    echo "deb [signed-by=/usr/share/keyrings/ondrej-php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu $(. /etc/os-release && echo "${VERSION_CODENAME}") main" \
+        > /etc/apt/sources.list.d/ondrej-php.list && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    php${PHP_VERSION}-cli php${PHP_VERSION}-common \
+    php${PHP_VERSION}-xml php${PHP_VERSION}-zip php${PHP_VERSION}-gd php${PHP_VERSION}-mbstring \
+    php${PHP_VERSION}-curl \
     libonig-dev unzip \
+    && php -v \
+    && dpkg --compare-versions "$(php -r 'echo PHP_VERSION;')" ge "${PHP_MIN_VERSION}" \
+    && rm -f /etc/apt/sources.list.d/ondrej-php.list \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
